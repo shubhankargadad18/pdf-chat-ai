@@ -1,15 +1,18 @@
 import streamlit as st
 import langchain
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain import OpenAI, VectorDBQA
 from langchain.chains import RetrievalQAWithSourcesChain
 import PyPDF2
+import os
 
 __import__('pysqlite3')
 import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+os.environ["OPENAI_API_KEY"] = st.secrets["openai_api_key"]
 
 #This function will go through pdf and extract and return list of page texts.
 def read_and_textify(files):
@@ -27,7 +30,7 @@ def read_and_textify(files):
     return [text_list,sources_list]
 
 st.set_page_config(layout="centered", page_title="GoldDigger")
-st.header("GoldDigger")
+st.header("Building a multi-PDF GEN AI Chatbot Using Open AI, LangChain and Streamlit")
 st.write("---")
   
 #file uploader
@@ -45,7 +48,7 @@ elif uploaded_files:
   sources = textify_output[1]
   
   #extract embeddings
-  embeddings = OpenAIEmbeddings(openai_api_key = st.secrets["openai_api_key"])
+  embeddings = OpenAIEmbeddings()
   #vstore with metadata. Here we will store page numbers.
   vStore = Chroma.from_texts(documents, embeddings, metadatas=[{"source": s} for s in sources])
   #deciding model
